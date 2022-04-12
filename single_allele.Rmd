@@ -1,0 +1,167 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = F, 
+                      warning = F)
+```
+
+
+### Genotype
+```{r Genotype}
+remove(list = ls()) # Clean the global environment
+p <- 0.5 # allele frequency 
+n <- 10000 # population size
+
+#locus 1
+a1 <- 1000 # additivity
+d1 <- 0 #dominance
+
+#locus 2
+a2 <- 800
+d2 <- 800
+
+mu <- 5000 # pop mean
+H2 <- 0.5 # heritability
+
+X1 <- rbinom(n=n,size=2,p=p) # sampling genotypes under HWE
+X2 <- rbinom(n=n,size=2,p=p) 
+X3 <- rbinom(n=n,size=2,p=p) 
+
+sum(X1 == 0)
+sum(X1 == 1)
+sum(X1 == 2)
+
+n
+
+# p^2 + 2pq + q^2 under HWE
+n * p^2
+n* 2*p*(1-p)
+n* (1-p)^2
+
+# Genetic effect (0 = aa, 1 = Aa, 2 = AA)
+G <- mu+ifelse(X1==2,a1,ifelse(X1==1,d1,-a1)) +
+     ifelse(X2==2,a2,ifelse(X2==1,d2,-a2)) 
+
+vG <- var(G) # an estimate of the genetic variance
+vE <- vG*(1-H2)/H2 # with this error variance we will have the desired 
+
+E <- rnorm(n=n,sd=sqrt(vE)) # environmental effects for each sample
+
+var(G)/var(G+E) # rough estimate of the locus-heritability H2  
+H2
+
+
+G1 <- mu+ifelse(X1==2,a1,ifelse(X1==1,0,-a1)) +
+     ifelse(X2==2,a2,ifelse(X2==1,0,-a2))
+
+var(G1)/var(G+E)  # rough estimate of the locus-heritability h2  
+```
+
+### Phenotype
+
+```{r }
+
+Y <- G+E # Phenotype!!!
+
+par(mfrow= c(2,2), 
+    mai = c(0.35, 0.35, 0.35, 0.35)) # set window to plot 2 rows and columns
+
+
+boxplot(Y~X1, main = "Locus 1")
+boxplot(Y~X2, main = "Locus 2")
+boxplot(Y~X3, main = "Locus 3")
+hist(Y, breaks = 50, col="cornflowerblue", main = "Phenotype")
+```
+
+
+
+### Average effect of allele substitution 
+
+```{r allele effect}
+fmA1 <- lm(Y~X1) # fits a linear model on genotypes (additive effects)
+Z1 <- 1.0*(X1==1) # Create a variable for A1A2 genotype
+fmAD1 <- lm(Y~X1+Z1) # fits a linear model on genotypes (dominant effects)
+
+fmA1
+fmAD1
+
+fmA2 <- lm(Y~X2) # fits a linear model on genotypes (additive effects)
+Z2 <- 1.0*(X2==1) # Create a variable for A1A2 genotype
+fmAD2 <- lm(Y~X2+Z2) # fits a linear model on genotypes (dominant effects)
+fmA2
+fmAD2
+
+
+fmA3 <- lm(Y~X3) # fits a linear model on genotypes (additive effects)
+Z3 <- 1.0*(X3==1) # Create a variable for A1A2 genotype
+fmAD3 <-lm(Y~X3+Z3) # fits a linear model on genotypes (dominant effects)
+fmA3
+fmAD3
+
+par(mfrow= c(2,2), 
+    mai = c(0.35, 0.35, 0.35, 0.35))
+
+boxplot(Y~X1, main = "Locus 1")
+abline(lm(fmA1), col="red ")
+boxplot(Y~X2, main = "Locus 2")
+abline(lm(fmA2), col="red ")
+boxplot(Y~X3, main = "Locus 3")
+abline(lm(fmA3), col="red ")
+
+
+```
+
+
+###Expected Value per Group
+
+```{r Expected Values}
+fmAD1
+
+mua1a1 <- fmAD1$coef[1] #(i.e., the intercept)
+muA1a1 <-fmAD1$coef[1]+fmAD1$coef[2]+fmAD1$coef[3] # A1A2, E[Y|X=1]
+muA1A1 <-fmAD1$coef[1]+2*fmAD1$coef[2] # Homocygous A2A2, E[X=2]
+
+mua2a2 <-fmAD2$coef[1] 
+muA2a2 <-fmAD2$coef[1]+fmAD2$coef[2]+fmAD2$coef[3] 
+muA2A2 <-fmAD2$coef[1]+2*fmAD2$coef[2] 
+
+mua3a3 <-fmAD3$coef[1] 
+muA3a3 <-fmAD3$coef[1]+fmAD3$coef[2]+fmAD3$coef[3] 
+muA3A3 <-fmAD3$coef[1]+2*fmAD3$coef[2] 
+
+exp_values <- matrix(c(mua1a1, muA1a1, muA1A1, 
+                      mua2a2, muA2a2, muA2A2, 
+                      mua3a3, muA3a3, muA3A3 ), 
+                      ncol = 3, byrow = T)
+
+colnames(exp_values) = c("aa", "Aa","AA")
+row.names(exp_values) = c("Allele1","Allele2", "Allele3")
+
+exp_values = as.table(exp_values)
+exp_values
+```
+
+
+###Models.... which is better for your data???
+
+```{r Models}
+fm0 <- lm(Y~1) 
+summary(fm0) # Null = intercept
+mean(Y)
+
+anova(fm0,fmAD1) # testing whether there is an association, either additive effect or dominance or both
+anova(fm0,fmAD2)
+anova(fm0,fmAD3)
+
+anova(fm0,fmA1) # Testing whether there is a additive association
+anova(fm0,fmA2)
+
+
+anova(fmA1,fmAD1) # Testing whether there is dominance
+anova(fmA2,fmAD2)
+
+```

@@ -1,0 +1,118 @@
+---
+author: "Paulo Izquierdo"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+### load packages
+
+```{r}
+remove(list=ls())
+library(rrBLUP) # GS ans GWAS
+library(dplyr) # organize data
+library(qqman) # Manhattan plots
+
+```
+
+Variables to change in the shiny app
+
+```{r}
+####variables to change in the shiny app
+h2 <- 0.5 # between 0-1
+
+popsize <- 500 # between 50 - 500, < 500 take ~ 6 sec, > 500 take ~ 26 seconds
+
+qtlnum <- 20 # between 2 to 50, it works with all the markers as QTL (1100), but that does not make a lot of sense, and with one marker would be the same that the single allele example.... and because the association is so so strong the code have an error to plot
+
+```
+
+This is the code to get the genotype and phenotype
+
+```{r}
+start_time <- Sys.time()
+
+M <- matrix(0,1100,popsize) # matrix of genotypes dimensions
+
+for (i in 1:popsize) { # fill the genotype matrix
+        M[,i] <- ifelse(runif(1100)<0.5,-1,1)
+}
+
+colnames(M) <- 1:popsize
+
+# create the data frame with chromosomes
+geno <- data.frame(SNP=1:1100, 
+                   Chromosome=rep(1:11,each=100),
+                   Position=rep(1:100, times=11),
+                   M,check.names=FALSE)
+
+QTL <- sample(1:1100, qtlnum)
+
+u <- rep(0,1100) # QTL positions
+u[QTL] <- rep(0.5,qtlnum) # QTL effect. This simulation is going to assume additive effects in all QTL
+
+g <- as.vector(crossprod(M,u)) #  cross product between Markers and marker effects
+
+
+y <- g + rnorm(popsize,mean=0,sd=sqrt((1-h2)/h2*var(g))) # phenotype with QTL effects and size pop = popsize
+
+pheno <- data.frame(Sample=1:popsize,Trait=y) # get the data frame input for the GWA 
+
+scores <- GWAS(pheno,geno,plot=F) # run the mixed model
+
+scores <- scores %>% mutate(pvalue= 10^-Trait) # transform the -log10 to pvalue
+
+Y_RA <- pheno[,2] # phenotype to estimate marker effect
+M_qtl1 <- M[QTL[1],] # Firts QTL
+
+fmR1=lm(Y_RA~M_qtl1) # fits a linear model on genotypes 
+
+R1A1A1=fmR1$coef[1] #(i.e., the intercept)
+R1A2A2=fmR1$coef[1]+fmR1$coef[2] # Homocygous A2A2, E[X=2]
+
+exp_values_R1 = matrix(c(R1A1A1, R1A2A2), 
+                       ncol = 2, byrow = T)
+
+colnames(exp_values_R1) = c("aa", "AA")
+row.names(exp_values_R1) = c("QTL1")
+
+exp_values_R1 = as.table(exp_values_R1)
+
+end_time <- Sys.time()
+end_time - start_time
+
+```
+
+
+These are the output to use in the shiny app !!!!!
+
+```{r}
+par(mfrow= c(1,3), 
+    mai = c(0.35, 0.35, 0.35, 0.35))
+
+hist(y, col = "cornflowerblue", breaks = 50, 
+     main="Trait", xlab = "Measure")
+
+boxplot(Y_RA~M_qtl1, xaxt = "n",
+        main = "QTL", 
+        xlab = "Genotype",
+        ylab = "Trait",
+        col=c("darkolivegreen1", "cornflowerblue")) 
+        axis(1, at = c(1, 2),
+         labels = c("aa", "AA")) 
+abline(h=c(R1A1A1,R1A2A2), col=c("red", "blue"), lty=c(1,2), lwd=c(2, 2))
+
+manhattan(scores, main = "Manhattan plot", # manhattan plot 
+          chr="Chromosome",
+          bp="Position", snp="SNP", p="pvalue", 
+          highlight = QTL, 
+          col = c("blue4", "orange3"),
+          suggestiveline = F, 
+          genomewideline = -log10(0.05/1100), # Bonferroni
+          cex = 0.6)
+
+
+```
+
+
+
+Time difference of 0.4461579 secs

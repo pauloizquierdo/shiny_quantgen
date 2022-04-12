@@ -1,0 +1,135 @@
+---
+title: "shiny app"
+author: "Paulo"
+date: "4/11/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+single allele additive
+
+```{r additive}
+##### Only additive effects ####################
+
+# Genetic effect (0 = aa, 1 = Aa, 2 = AA)
+
+p <- 0.5 # allele frequency 
+n <- 10000 # population size
+H2 <- 1 # heritability
+
+#locus 1
+a1 <- 1000 # additivity
+d1 <- 0 #dominance
+
+X1 <- rbinom(n=n,size=2,p=p) # sampling genotypes under HWE
+
+
+
+# Genetic effect (0 = aa, 1 = Aa, 2 = AA)
+G <- ifelse(X1==2,a1,ifelse(X1==1,d1,-a1)) 
+
+vG <- var(G) # an estimate of the genetic variance
+vE <- vG*(1-H2)/H2 # with this error variance we will have the desired 
+
+E <- rnorm(n=n,sd=sqrt(vE)) # environmental effects for each sample
+
+var(G)/var(G+E) # rough estimate of the locus-heritability H2  
+
+H2
+
+Y <- G+E # Phenotype!!!
+
+par(mfrow= c(1,2), 
+    mai = c(0.35, 0.35, 0.35, 0.35))
+
+hist(Y, breaks = 50, main = "Phenotype",
+     col='darkolivegreen1')
+boxplot(Y~X1, col='darkolivegreen1',
+        main = "Allele effect: Additive")
+```
+
+
+single allele dominant
+
+```{r dominant}
+##### Only additive effects ####################
+
+p <- 0.05 # allele frequency 
+n <- 100000 # population size
+H2 <- 0.8 # heritability
+
+#locus 1
+a2 <- 1000 # additivity
+d2 <- 800 #dominance
+
+
+
+X2 <- rbinom(n=n,size=2,p=p) # sampling genotypes under HWE
+
+# Genetic effect (0 = aa, 1 = Aa, 2 = AA)
+Gd <- ifelse(X2==2,a2,ifelse(X2==1,d2,-a2)) 
+
+vGd <- var(Gd) # an estimate of the genetic variance
+vEd <- vGd*(1-H2)/H2 # with this error variance we will have the desired 
+
+Ed <- rnorm(n=n,sd=sqrt(vEd)) # environmental effects for each sample
+
+Yd <- Gd+Ed # Phenotype!!!
+
+par(mfrow= c(1,2), 
+    mai = c(0.35, 0.35, 0.35, 0.35))
+
+hist(Yd, breaks = 100, main = "Population",
+     col="salmon")
+boxplot(Yd~X2, main = "Allele effect: dominant", col="gold")
+```
+
+
+
+single allele non-effect
+
+```{r non-effect}
+#locus 1
+a1 <- 1000 # additivity
+d1 <- 0 #dominance
+
+#locus 2
+a2 <- 800
+d2 <- 0
+
+H2 <- 0.7 # heritability
+
+X1 <- rbinom(n=n,size=2,p=p) 
+X2 <- rbinom(n=n,size=2,p=p) 
+X3 <- rbinom(n=n,size=2,p=p) 
+
+# Genetic effect (0 = aa, 1 = Aa, 2 = AA)
+G <- ifelse(X1==2,a1,ifelse(X1==1,d1,-a1)) +
+     ifelse(X2==2,a2,ifelse(X2==1,d2,-a2)) 
+
+vG <- var(G) # an estimate of the genetic variance
+vE <- vG*(1-H2)/H2 # with this error variance we will have the desired 
+
+En <- rnorm(n=n,sd=sqrt(vE)) # environmental effects for each sample
+
+Gn <- ifelse(X1==2,a1,ifelse(X1==1,0,-a1)) +
+     ifelse(X2==2,a2,ifelse(X2==1,0,-a2))
+
+
+Yn <- Gn+En # Phenotype!!!
+
+par(mfrow= c(1,2), 
+    mai = c(0.35, 0.35, 0.35, 0.35))
+
+boxplot(Yn~X3, col= 'darkgoldenrod1',
+        main = "Allele with non-effect")
+hist(Yn, breaks = 50, 
+     col="coral", main = "Phenotype")
+
+```
