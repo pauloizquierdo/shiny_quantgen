@@ -1,9 +1,4 @@
----
-title: "Shyny app for quantitative genetics"
-#date: "4/11/2022"
----
-
-
+Shyny app for quantitative genetics
 
 Created by Sikta Das Adhikari, Claudia Miranda, Joanne Thompson and Paulo Izquierdo, for a Quantitative Genetics workshop website.
 
