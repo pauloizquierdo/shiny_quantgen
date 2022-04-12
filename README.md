@@ -18,3 +18,4 @@ Additionally, make sure tidyverse, shiny, rrBLUP and qqman packages are installe
 > + [Quantitative genetics workshop website](https://pauloizquierdo.github.io/Quantitative_Genetics/)
 
 
+<img src="hist.png" width="800px">
