@@ -11,5 +11,5 @@ Created by Sikta Das Adhikari, Claudia Miranda, Joanne Thompson and Paulo Izquie
 
 R and RStudio
 
-Additionally, make sure tidyverse, shiny, rrBLUP and qqman.
+Additionally, make sure tidyverse, shiny, rrBLUP and qqman packages are installed.
 
