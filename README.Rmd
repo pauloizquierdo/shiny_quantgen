@@ -1,13 +1,8 @@
 ---
 title: "Shyny app for quantitative genetics"
-#author: "Paulo"
 #date: "4/11/2022"
-output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 
 Created by Sikta Das Adhikari, Claudia Miranda, Joanne Thompson and Paulo Izquierdo, for the a Quantitative Genetics workshop website.
