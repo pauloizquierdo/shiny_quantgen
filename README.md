@@ -10,16 +10,11 @@ R and RStudio
 
 Additionally, make sure tidyverse, shiny, rrBLUP and qqman packages are installed.
 
->[Quantitative genetics workshop videos](https://youtube.com/playlist?list=PLOb4571zCOd8rnWQOTMGnSx5bncpGr9W6)
 
->[Quantitative genetics workshop website](https://pauloizquierdo.github.io/Quantitative_Genetics/)
+##Links
 
+>1.[Quantitative genetics workshop videos](https://youtube.com/playlist?list=PLOb4571zCOd8rnWQOTMGnSx5bncpGr9W6)
 
-```{r echo=FALSE}
-
-hist(rnorm(100000), breaks = 100, 
-     col="salmon", xlab = "", main = "")
+>2.[Quantitative genetics workshop website](https://pauloizquierdo.github.io/Quantitative_Genetics/)
 
 
-
-```
